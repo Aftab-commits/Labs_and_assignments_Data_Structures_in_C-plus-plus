@@ -179,15 +179,25 @@ class List{
                 cout<<arr[i]<<endl;
             }
        }
+       // i have to create a function to reverse the linked list:
+
+       void reverse_list(){
+        node * prev = null;
+        node * cur = head;
+        node * next;
+        tail ;
+
+        while(cur-> next!=null){
+            // we have the prev, current and the next]
+            next = cur->next;
+            cur->next = prev;
+            prev = cur;
+            cur = next;
+        }
+        // now what would be the head and the tail;
+
+       }
 
 
 
 };
-
-int main(){
-
-
-
-
-    return 0;
-}
