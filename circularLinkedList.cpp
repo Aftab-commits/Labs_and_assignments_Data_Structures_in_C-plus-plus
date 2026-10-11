@@ -29,7 +29,7 @@ class circularList{
         cnode<obj> * n = new cnode<obj>(d, head);// pointing to the previous head
         if(head == nullptr){
             head = tail = n;
-            tail->next = head;
+            head->next = tail->next = head;
         }
         else{
             // this will serve as the simple case:
@@ -42,6 +42,11 @@ class circularList{
         cnode<obj> * n = new cnode<obj>(d, head);
         if(head == nullptr){
             head = tail = n;
+            head->next = tail->next = head;
+        }
+        if(tail == head){
+            head->next = n;
+            tail = n;
             tail->next = head;
         }
         else{
@@ -51,7 +56,7 @@ class circularList{
         }
     }
 
-    void insert_middle(obj pos, obj d){
+    void insert_middle(obj d, obj pos){
         // we have to insert the d after the pos
         if(head == nullptr){
             // the list is empty
@@ -73,10 +78,11 @@ class circularList{
         return;// the element was not found
     }
 
-    void del_node(cnode<obj> * n){
+    // the del node will return the node previous to the one deleted
+    cnode<obj> *  del_node(cnode<obj> * n){
         // find the d and the delete the d;
         if(head == nullptr){
-            return;
+            return nullptr;
         }
         cnode<obj> * cur = head;
         cnode<obj> * tmp;
@@ -89,13 +95,13 @@ class circularList{
                         head = nullptr;
                         tail = nullptr;
                         delete cur;
-                        return;
+                        return head;
                     }
                     tmp = cur;
                     tail->next = head->next;
                     head = cur->next;
                     delete tmp;
-                    return;
+                    return tail;
                 }
             }
             if(cur->next == n && cur->next == tail){
@@ -103,16 +109,17 @@ class circularList{
                     tail = cur;
                     tail->next= head;
                     delete tmp;
-                    return;
+                    return tail;
             }
             if(cur->next == n){
                 tmp = cur->next;
                 cur->next = cur->next->next;
                 delete tmp;
-                return;
+                return cur;
             }
             cur = cur->next;
         }while(cur!=head);
+        return nullptr;
     }
 
     // now i have to create the insert and the delete functions
@@ -120,8 +127,7 @@ class circularList{
     // default constructor:
         circularList(){
         head = nullptr;
-        head->next = head;
-        tail = head; 
+        tail = nullptr; 
     } 
 
     // now i have to do the insertion:
@@ -226,25 +232,185 @@ class circularList{
 
 
     // now let me do the tasks:
+    // this function will only work if the obj is int
+
     void delete_even(){
-        // this function will delete those nodes whose data have even values:
         cnode<obj> *cur = head;
+        cnode<obj> *tmp;
+        // lets make a counter first:
+        int size = 0;
+        if(head == nullptr){
+            return;
+        }
+        if(head -> next == head){
+            if(head -> data %2 == 0)del_node(head);
+            return;
+        }
         do{
-            if(cur->data %2 == 0){
-                // it is even so delete this node
-                del_node(cur);
-            }
+            size++;
             cur = cur->next;
         }while(cur!=head);
+        for(int i = 0; i<size; ++i){
+            if(cur->data %2 == 0){
+                tmp = cur->next;
+                del_node(cur);
+                cur = tmp;
+            }
+            else{
+                cur=cur->next;
+            }
+        }
     }
+
+    void delete_odd(){
+        cnode<obj> *cur = head;
+        cnode<obj> *tmp;
+        // lets make a counter first:
+        int size = 0;
+        if(head == nullptr){
+            return;
+        }
+        if(head -> next == head){
+            if(head -> data %2 != 0)del_node(head);
+            return;
+        }
+        do{
+            size++;
+            cur = cur->next;
+        }while(cur!=head);
+        for(int i = 0; i<size; ++i){
+            if(cur->data %2 !=0){
+                tmp = cur->next;
+                del_node(cur);
+                cur = tmp;
+            }
+            else{
+                cur=cur->next;
+            }
+        }
+    }
+
+    // now i have to create a method which will delete every third entry from the list until one
+    // element is left:
+    void joseph_prob_odd(){
+        int i = 0;
+        cnode<obj>* cur=tail;
+        if(tail == nullptr){
+            return;
+        }
+        do{
+            i++;
+            cur= cur->next;
+            if(i%3 == 0){
+                cur = del_node(cur);
+            }
+        }while(cur != cur->next);
+    }
+
+    // write a function that deletes all the even position node:
+    void del_even_node(){
+        // delete the node if the position is even:
+        cnode<obj> * cur = head;
+        cnode<obj> * tmp;
+        int i = 0;
+        if(tail == nullptr || head->next == head){
+            return;
+        }
+        do{
+            i++;
+            if(i%2 == 0){
+                // this means that the node is at a even position:
+                tmp = cur->next;
+                del_node(cur);
+                cur = tmp;
+            }
+            else{
+                cur = cur->next; 
+            }
+        }while(cur != head);
+    }
+
+    void delete_all() {
+        if (head == nullptr) return;
+        cnode<obj>* cur = head->next;
+        while (cur != head) {            
+            cnode<obj>* tmp = cur;
+            cur = cur->next;
+            delete tmp;
+        }
+        delete head;                     
+        head = tail = nullptr;
+    }
+
+    int find(obj key) {
+        if (head == nullptr) return -1;
+
+        cnode<obj>* cur = head;
+        int index = 0;
+        do {
+            if (cur->data == key) return index;
+            cur = cur->next;
+            index++;
+        } while (cur != head);           
+
+        return -1;                       
+    }
+    void display(){
+       if(head == nullptr){ cout << "(empty)" << endl; return; }
+       cnode<obj>* cur = head;
+       do{ cout << cur->data << " "; cur = cur->next; }while(cur != head);
+       cout << endl;
+   }
 };
 
-
-
-
 int main(){
+    circularList<int> list;
 
+    cout << "--- insert ---" << endl;
+    for(int i = 1; i <= 5; i++) list.insert(i);
+    list.insert_begin(0);
+    list.insert_find(3, 33);          
+    list.display();                   
 
+    cout << "--- find ---" << endl;
+    cout << "index of 33: " << list.find(33) << endl;     
+    cout << "index of 100: " << list.find(100) << endl;   
 
+    cout << "--- delete ---" << endl;
+    list.del(33);
+    list.del_start();
+    list.del_end();
+    list.display();                  
 
+    cout << "--- delete_even ---" << endl;
+    list.delete_even();
+    list.display();                   
+
+    cout << "--- delete_odd ---" << endl;
+    list.insert(8); list.insert(6); list.insert(7);
+    list.display();                   
+    list.delete_odd();
+    list.display();                  
+
+    cout << "--- josephus ---" << endl;
+    list.delete_all();
+    for(int i = 1; i <= 7; i++) list.insert(i);
+    list.joseph_prob_odd();
+    list.display();                   
+
+    cout << "--- delete even positions ---" << endl;
+    list.delete_all();
+    for(int i = 1; i <= 5; i++) list.insert(i);
+    list.del_even_node();
+    list.display();                   
+    list.delete_all();
+    for(int i = 1; i <= 4; i++) list.insert(i);
+    list.del_even_node();
+    list.display();                  
+
+    cout << "--- delete_all ---" << endl;
+    list.delete_all();
+    list.display();                   
+    list.delete_all();                
+    return 0;
 }
