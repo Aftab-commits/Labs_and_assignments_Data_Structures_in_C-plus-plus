@@ -1,5 +1,6 @@
-// In this file i would be dealing with all the types of the linked lists
+// In this file i would be dealing with single linked list
 #include<iostream>
+#include<string>
 using namespace std;
 
 
@@ -48,7 +49,7 @@ class s_list{
             return nullptr;
         }
         if(head == n){
-            tmp = head; 
+            tmp = head;
             head = head->next;
             delete tmp;
             if(head == nullptr){
@@ -76,7 +77,7 @@ class s_list{
 
     int size_list(){
         // this function will give us the size of the list:
-        int size = 0; 
+        int size = 0;
         for(snode<obj> * cur = head; cur!=nullptr ;cur= cur->next){
             size++;
         }
@@ -88,13 +89,45 @@ class s_list{
         head = nullptr;
         tail = nullptr;
     }
+
     ~s_list(){
-        delete head;
-        delete tail;
+        // first remove a cycle if one exists
+        if(check_cycle() == -1){
+            snode<obj> * slow = head;
+            snode<obj> * fast = head;
+
+            do{
+                slow = slow->next;
+                fast = fast->next->next;
+            }while(slow != fast);
+
+            slow = head;
+            while(slow != fast){
+                slow = slow->next;
+                fast = fast->next;
+            }
+
+            snode<obj> * last = slow;
+            while(last->next != slow){
+                last = last->next;
+            }
+            last->next = nullptr;
+        }
+
+        // delete every node in the list
+        snode<obj> * cur = head;
+        while(cur != nullptr){
+            snode<obj> * tmp = cur;
+            cur = cur->next;
+            delete tmp;
+        }
+
+        head = nullptr;
+        tail = nullptr;
     }
 
     void insert_end(obj d){
-        snode<obj> * n = new snode<obj>(d, nullptr);;
+        snode<obj> * n = new snode<obj>(d, nullptr);
         if(head == nullptr){
             head = tail = n;
             return;
@@ -117,14 +150,14 @@ class s_list{
             return;
         }
         snode<obj>* prev = nullptr;
-        snode<obj> * n ;
+        snode<obj> * n;
         snode<obj> * cur = head;
         tail = head;
         while(cur!=nullptr){
             n = cur->next;
             cur->next = prev;
             prev = cur;
-            cur = n; 
+            cur = n;
         }
         head = prev;
     }
@@ -132,7 +165,7 @@ class s_list{
 
     void display(){
         // this displays the list:
-        for(snode<obj> * cur = head; cur!= nullptr; cur= cur->next){
+        for(snode<obj> * cur = head; cur!= nullptr; cur=cur->next){
             cout<<cur->data<<endl;
         }
     }
@@ -140,25 +173,43 @@ class s_list{
     snode<obj> * del_by_val(obj d){
         // this will delete the required node and return the node one before it
         snode<obj> * tmp;
+
         if(head == nullptr){
             return nullptr;
         }
-        if(head->data == d && head->next == nullptr){
+
+        // handle the head separately
+        if(head->data == d){
             tmp = head;
-            head = tail = nullptr;
+            head = head->next;
+
+            if(head == nullptr){
+                tail = nullptr;
+            }
+
             delete tmp;
             return nullptr;
         }
-        for(snode<obj> * cur = head; cur!=nullptr; cur= cur->next){
+
+        for(snode<obj> * cur = head;
+            cur->next != nullptr;
+            cur = cur->next){
+
             if(cur->next->data == d){
                 tmp = cur->next;
-                cur->next = cur->next->next;
+                cur->next = tmp->next;
+
+                if(tmp == tail){
+                    tail = cur;
+                }
+
                 delete tmp;
                 return cur;
             }
         }
         return nullptr;
     }
+
     void rem_duplicate(){
         // this function will remove all the duplicates leaving unique values:
         snode<obj> * tmp;
@@ -174,16 +225,17 @@ class s_list{
             }
         }
     }
+
     void rem_duplicate_by_value(obj d){
-        // this function will remove all the duplicates leaving unique values:
+        // this function will remove all the entries matching the given value:
         snode<obj> * tmp;
-        for(snode<obj> * cur = head ; cur!=nullptr ; ){
+        for(snode<obj> * cur = head ; cur!=nullptr ;){
             if(cur->data == d){
                 tmp = cur;
                 cur = del_by_node(tmp);
-            }   
+            }
             else{
-               cur=cur->next;
+                cur=cur->next;
             }
         }
     }
@@ -199,33 +251,53 @@ class s_list{
         if(head == tail && tail->next == head){
             return -1; // cycle
         }
+
         snode<obj> * fast = head;
         snode<obj> * slow = head;
+
         do{
-            // if the list has a a cycle then there will reach a point where the
-            // the fast and the slow pointer are same other wise the fast will reach
+            // if the list has a cycle then there will reach a point where the
+            // fast and the slow pointer are same otherwise the fast will reach
             // the nullptr
             if(fast==nullptr || fast->next == nullptr){
                 return 0;
             }
             fast = fast->next->next;
-            slow = slow->next; 
+            slow = slow->next;
         }while(fast!=slow);
+
         return -1;
-        
+    }
+
+    void create_cycle(int pos){
+        // the tail will point back to the pos-th node (1-based):
+        if(head == nullptr || pos < 1){
+            return;
+        }
+        snode<obj> * target = head;
+        for(int k = 1; k < pos && target != nullptr; k++){
+            target = target->next;
+        }
+        if(target == nullptr){
+            return;
+        }
+        tail->next = target;
     }
 
     snode<obj> * find_middle(){
-        // this is odd
+        // for an even-sized list, this returns the left middle
         snode<obj> * cur = head;
         int dest;
         int size = size_list();
-        size%2 == 0? dest = size/2 : dest = (size/2)+1;
+
+        size%2 == 0 ? dest = size/2 : dest = (size/2)+1;
+
         for(int k = 1 ; k<dest ; k++){
             cur = cur->next;
         }
         return cur;
     }
+
     int is_empty(){
         //this returns 0 if it is empty and -1 if not:
         if(head == nullptr){
@@ -235,62 +307,77 @@ class s_list{
             return -1;
         }
     }
-    s_list<obj> * even_entries(){
-        s_list<obj> * even = new s_list<obj>(); 
 
-        if(isInt<obj>::value != 0){
-            // this means the value of the list are not int
-            return nullptr;
-        }
-        for(snode<obj> * cur = head; cur!=nullptr; cur=cur->next){
-            if(cur->data%2 == 0){
-                even->insert_end(cur->data);
-            }
-        }
-        int r  = is_empty();
-        if(r == 0){
+    s_list<obj> * even_entries(){
+
+        if constexpr (isInt<obj>::value != 0){
+            // this means the values of the list are not int
             return nullptr;
         }
         else{
-            return even;
+            s_list<obj> * even = new s_list<obj>();
+
+            for(snode<obj> * cur = head; cur!=nullptr; cur=cur->next){
+                if(cur->data%2 == 0){
+                    even->insert_end(cur->data);
+                }
+            }
+
+            int r = is_empty();
+            if(r == 0){
+                delete even;
+                return nullptr;
+            }
+            else{
+                return even;
+            }
         }
     }
 
 
     s_list<obj> * odd_entries(){
-        s_list<obj> * odd = new s_list<obj>(); 
-        
-        if(isInt<obj>::value != 0){
-            // this means the value of the list are not int
-            return nullptr;
-        }
-        for(snode<obj> * cur = head; cur!=nullptr; cur=cur->next){
-            if(cur->data%2 != 0){
-                odd->insert_end(cur->data);
-            }
-        }
-        int r  = is_empty();
-        if(r == 0){
+
+        if constexpr (isInt<obj>::value != 0){
+            // this means the values of the list are not int
             return nullptr;
         }
         else{
-            return odd;
+            s_list<obj> * odd = new s_list<obj>();
+
+            for(snode<obj> * cur = head; cur!=nullptr; cur=cur->next){
+                if(cur->data%2 != 0){
+                    odd->insert_end(cur->data);
+                }
+            }
+
+            int r = is_empty();
+            if(r == 0){
+                delete odd;
+                return nullptr;
+            }
+            else{
+                return odd;
+            }
         }
     }
 
     void reverse_recurse(snode<obj> * prev, snode<obj> * cur, snode<obj> * last){
-        if(cur==last->next){
-            // the last->next would be null in the tail case
+        if(last == nullptr || cur == nullptr || cur == last->next){
             return;
         }
+
         reverse_recurse(cur,cur->next, last);
         cur->next = prev;
         prev = cur;
     }
 
     void full_reverse_recurse(){
+        if(head == nullptr || head == tail){
+            return;
+        }
+
+        snode<obj> * tmp = head;
         reverse_recurse(nullptr,head,tail);
-        snode<obj> tmp = head;
         head = tail;
         tail = tmp;
     }
@@ -299,65 +386,80 @@ class s_list{
         // i have to reverse the list in two parts:
         int dest;
         int k = size_list();
-        k%2 == 0 ? dest = size_list()/2 : dest = (size_list()/2)+1;
+
+        // no reversal is needed for an empty list or a single node
+        if(k < 2){
+            return;
+        }
+
+        k%2 == 0 ? dest = k/2 : dest = (k/2)+1;
+
         snode<obj> * cur = head;
         int i = 1;
+
         while(i<dest){
             cur = cur->next;
             i++;
         }
+
         snode<obj> * start = cur->next;
-        snode<obj> * prev = cur;
-        
-        
+
         reverse_recurse(tail,head,cur);
         head = cur;
+
         reverse_recurse(nullptr,start,tail);
         tail = start;
     }
 
     private:
     void swap_adjacent_front(snode<obj> * s1, snode<obj> * s2){
-        // this funtion has to swap the adjacent entries
+        // this function has to swap the adjacent entries
         int find = 0;
+
         for(snode<obj> * cur = head; cur!=nullptr ; cur = cur->next){
-                if(cur == s1){
-                    find = 1;
-                }
+            if(cur == s1){
+                find = 1;
             }
-        if(find == 0 ) return;
+        }
+
+        if(find == 0) return;
 
         if(s1->next == s2){
-            // s1 is before the s1
+            // s1 is before s2
             snode<obj> * tmp;
-            snode<obj> * bef;
+            snode<obj> * bef = nullptr;
             int h = 0;
             int t = 0;
+
             if(s1 == head){
                 h = 1;
             }
             if(s2 == tail){
                 t = 1;
             }
+
             for(snode<obj> * cur = head; cur!=nullptr ; cur = cur->next){
                 if(cur->next == s1){
                     bef = cur;
                     break;
                 }
             }
+
             tmp = s2->next;
-            
+
             if(s1!=head){
                 bef->next = s2;
             }
+
             s2->next = s1;
-            
+
             if(s2 == tail){
                 s1->next = nullptr;
             }
             else{
                 s1->next = tmp;
             }
+
             if(h == 1){
                 head = s2;
             }
@@ -366,8 +468,8 @@ class s_list{
             }
         }
         return;
-
     }
+
     public:
     void swap(){
         // this function will swap the adjacent entries:
@@ -375,39 +477,173 @@ class s_list{
             return;
         }
 
-        // i have function thtat swaps the adjacent ones
-        // i just have to pass the values to be swaped and
-        // all the cases will handled by the function
+        // swap two adjacent nodes, then move to the next pair
         snode<obj> * cur = head;
-        snode<obj> * nxt = head->next;
-        while(cur->next != nullptr){
+
+        while(cur != nullptr && cur->next != nullptr){
+            snode<obj> * nxt = cur->next;
+
             swap_adjacent_front(cur,nxt);
+
+            // cur is now the second node of the swapped pair
+            // its next node starts the next pair
             cur = cur->next;
-            nxt = nxt->next;
         }
     }
 
 
 };
 
+
+
+
 int main(){
+
+    cout << "1. Logs in reverse (latest first):\n";
     s_list<int> logs;
-    logs.insert_end(10);
-    logs.insert_end(20);
-    logs.insert_end(30);
-    logs.insert_end(40);
-    logs.insert_end(50);
-    logs.insert_end(60);
+    logs.insert_end(101);
+    logs.insert_end(102);
+    logs.insert_end(103);
+    logs.insert_end(104);
+    logs.display_reverse();
 
 
-    // snode<int> * n = logs.find_middle();
-    // cout<<n->data<<endl; 
-    // s_list<int> * even = logs.odd_entries();
-    // even->display();
-    // logs.full_reverse_recurse();
-    // logs.reverse_in_two();
-    // logs.display();
-    logs.swap();
-    logs.display();
+    cout << "\n2. Reverse the entire list:\n";
+    s_list<int> playlist;
+    playlist.insert_end(1);
+    playlist.insert_end(2);
+    playlist.insert_end(3);
+    playlist.insert_end(4);
+    playlist.reverse();
+    playlist.display();
 
+
+
+    cout << "\n3. Remove duplicate contacts:\n";
+    s_list<int> contacts;
+    contacts.insert_end(10);
+    contacts.insert_end(20);
+    contacts.insert_end(10);
+    contacts.insert_end(30);
+    contacts.insert_end(20);
+    contacts.insert_end(40);
+    contacts.rem_duplicate();
+    contacts.display();
+
+
+    //Detect whether a cycle exists.
+    cout << "\n4. Cycle detection:\n";
+    s_list<int> sensor;
+    sensor.insert_end(11);
+    sensor.insert_end(22);
+    sensor.insert_end(33);
+
+    cout << "Before: " << (sensor.check_cycle() == -1 ? "Cycle exists" : "No cycle exists") << endl;
+
+    sensor.create_cycle(2);
+    cout << "After:  " << (sensor.check_cycle() == -1 ? "Cycle exists" : "No cycle exists") << endl;
+
+
+    //Find the middle element.
+    cout << "\n5. Middle element:\n";
+    s_list<int> friends;
+    friends.insert_end(1);
+    friends.insert_end(2);
+    friends.insert_end(3);
+    friends.insert_end(4);
+    friends.insert_end(5);
+    friends.insert_end(6);
+
+    snode<int> * middle = friends.find_middle();
+
+    if(middle != nullptr){
+        cout << "Middle element: " << middle->data << endl;
+    }
+
+
+
+    cout << "\n6. Even-priced and odd-priced entries:\n";
+    s_list<int> prices;
+    prices.insert_end(12);
+    prices.insert_end(7);
+    prices.insert_end(24);
+    prices.insert_end(9);
+    prices.insert_end(16);
+    prices.insert_end(5);
+
+    s_list<int> * even = prices.even_entries();
+    s_list<int> * odd = prices.odd_entries();
+
+    cout << "Even entries:\n";
+    if(even != nullptr){
+        even->display();
+    }
+
+    cout << "Odd entries:\n";
+    if(odd != nullptr){
+        odd->display();
+    }
+
+    delete even;
+    delete odd;
+
+
+
+    cout << "\n7. Reverse both halves:\n";
+    s_list<int> boxes;
+    boxes.insert_end(1);
+    boxes.insert_end(2);
+    boxes.insert_end(3);
+    boxes.insert_end(4);
+    boxes.insert_end(5);
+    boxes.insert_end(6);
+    boxes.insert_end(7);
+    boxes.insert_end(8);
+
+    boxes.reverse_in_two();
+    boxes.display();
+
+
+
+    cout << "\n8. Remove duplicate stamps:\n";
+    s_list<string> stamps;
+    stamps.insert_end("Rose");
+    stamps.insert_end("Star");
+    stamps.insert_end("Moon");
+    stamps.insert_end("Rose");
+    stamps.insert_end("Sun");
+    stamps.insert_end("Star");
+
+    stamps.rem_duplicate();
+    stamps.display();
+
+
+
+    cout << "\n9. Delete all occurrences of an ID:\n";
+    s_list<int> books;
+    books.insert_end(10);
+    books.insert_end(20);
+    books.insert_end(10);
+    books.insert_end(30);
+    books.insert_end(10);
+    books.insert_end(40);
+
+    books.rem_duplicate_by_value(10);
+    books.display();
+
+
+
+    cout << "\n10. Swap adjacent pairs:\n";
+    s_list<int> tasks;
+    tasks.insert_end(1);
+    tasks.insert_end(2);
+    tasks.insert_end(3);
+    tasks.insert_end(4);
+    tasks.insert_end(5);
+    tasks.insert_end(6);
+
+    tasks.swap();
+    tasks.display();
+
+    return 0;
 }

@@ -1,5 +1,5 @@
-// this is the part of the assignment dealing with the task ralted with the doubly linke list:
 #include<iostream>
+#include<string>   
 using namespace std;
 
 template<typename obj>
@@ -22,15 +22,17 @@ class dList{
         tail = nullptr;
     }
 
+    
     ~dList(){
-        delete head;
-        delete tail;
+        while(head != nullptr){
+            dnode<obj> * t = head;
+            head = head->next;
+            delete t;
+        }
+        tail = nullptr;
     }
 
-    // i have to make the swap function
     void swap(dnode<obj> * swap1, dnode<obj> * swap2){
-        // i hvae to confirm that the both the values are present in the list 
-        // and then also make sure that the swap1 is before is the swap2
         int find1 = 0;
         int find2 = 0;
         int i = 0;
@@ -46,8 +48,7 @@ class dList{
                 find2 = 1;
             }
             if(i == 0 && cur == swap2){
-                return; // this means that the swap2 is before the swap1
-                
+                return; // swap2 is before swap1
             }
         }
         if(find1 == 0 || find2 == 0){
@@ -55,10 +56,10 @@ class dList{
         }
 
         if(swap1->next == swap2){
-            // means that they are adjacent
+            // adjacent
             if(head!=swap1)swap1->prev->next = swap2;
             if(tail!=swap2)swap2->next->prev = swap1;
-            
+
             if(head == swap1){
                 head = swap2;
             }
@@ -67,23 +68,20 @@ class dList{
             }
 
             dnode<obj> * tmp = swap2->next;
-            
+
             swap2->next = swap1;
             swap2->prev = swap1->prev;
 
             swap1->next = tmp;
             swap1->prev = swap2;
-            
         }
-        // now we have to swap
-        
         else{
             if(swap1!=head)swap1->prev->next = swap2;
             swap1->next->prev = swap2;
 
             swap2->prev->next = swap1;
-            if(swap2!=tail)swap2->next->prev = swap1; 
-        
+            if(swap2!=tail)swap2->next->prev = swap1;
+
             if(head == swap1){
                 head = swap2;
             }
@@ -106,37 +104,38 @@ class dList{
     {
         dnode<obj> * fresh = new dnode<obj>(nullptr, value, nullptr);
 
-        // list is empty so new node become head and tail both
         if (head == nullptr)
         {
             head = fresh;
             tail = fresh;
             return;
         }
-        // otherwise just attach it after the current tail
         tail->next = fresh;
         fresh->prev = tail;
         tail = fresh;
     }
 
-    // now i have to make a function to switch the firsts and the last:
+    
     void mix(){
+        if(head == nullptr || head == tail) return;   
         dnode<obj> * cur_n = head;
         dnode<obj> * cur_p = tail;
         dnode<obj> * tmp;
         do{
             swap(cur_n, cur_p);
-            
-            tmp = cur_n; 
+
+            tmp = cur_n;
             cur_n = cur_p;
             cur_p = tmp;
-            
+
             cur_n = cur_n->next;
             cur_p = cur_p->prev;
-        }while(cur_n!=cur_p && cur_n->next != cur_p);
+        }while(cur_n!=cur_p && cur_p->next != cur_n);   
     }
 
+    
     void mix_2(){
+        if(head == nullptr || head == tail) return;   
         dnode<obj> * cur_n = head;
         dnode<obj> * cur_p = tail;
         dnode<obj> * tmp;
@@ -144,17 +143,15 @@ class dList{
         do{
             if(i%2 == 0){
                 swap(cur_n, cur_p);
-                tmp = cur_n; 
+                tmp = cur_n;
                 cur_n = cur_p;
                 cur_p = tmp;
             }
             cur_n = cur_n->next;
             cur_p = cur_p->prev;
             i++;
-        }while(cur_n!=cur_p && cur_n->next != cur_p);
+        }while(cur_n!=cur_p && cur_p->next != cur_n);   
     }
-
-
 
     void display(){
         for(dnode<obj> * cur = head; cur!=nullptr ; cur=cur->next){
@@ -163,21 +160,33 @@ class dList{
     }
 };
 
-
-
 int main(){
-    dList<int> logs;
-    logs.insert_end(10);
-    logs.insert_end(20);
-    logs.insert_end(30);
-    logs.insert_end(70);
-    logs.insert_end(90);
-    logs.insert_end(100);
-    logs.insert_end(40);
-    logs.insert_end(50);
-    logs.insert_end(60);
-    logs.insert_end(80);
+    
+    dList<string> desks;
+    desks.insert_end("Alice");
+    desks.insert_end("Bob");
+    desks.insert_end("Charlie");
+    desks.insert_end("Dana");
+    desks.insert_end("Eva");
+    desks.insert_end("Frank");
 
-    logs.mix_2();
-    logs.display();
+    cout << "Task 1 - before:" << endl;
+    desks.display();
+    desks.mix();
+    cout << "Task 1 - after (Frank, Eva, Dana, Charlie, Bob, Alice):" << endl;
+    desks.display();
+
+    
+    dList<int> seats;
+    for(int s = 1; s <= 9; s++){
+        seats.insert_end(s);
+    }
+
+    cout << "\nTask 3 - before:" << endl;
+    seats.display();
+    seats.mix_2();
+    cout << "Task 3 - after (1 8 3 6 5 4 7 2 9):" << endl;
+    seats.display();
+
+    return 0;
 }
